@@ -66,7 +66,7 @@ uv run python \
 ```
 
 # Acknowledgement
-## VBTI
+## ![VBTI](https://www.vbti.nl)
 <p align="center">
   <a href="https://www.vbti.nl/VBTI_flyer_consultancy.pdf"><img src="https://www.vbti.nl/assets/icon_vbti_consultancy-DpJnJ27C.png" alt="VBTI Consultancy - Download Flyer" width="20%"></a>
   <a href="https://www.vbti.nl/VBTI_flyer_agritech%20v2.pdf"><img src="https://www.vbti.nl/assets/icon_vbti_agritech---Q4HobC.png" alt="VBTI Agritech - Download Flyer" width="20%"></a>
