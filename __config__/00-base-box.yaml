@@ -1,0 +1,151 @@
+base_dir: "/workspaces/dietr/__results__/"
+prefix: "00-base-box"
+
+predict_msk: False
+load_msk: False
+coco_data_dir: "/workspaces/data/"
+trn_ann_file: "coco/annotations/instances_train2017.json"
+val_ann_file: "coco/annotations/instances_val2017.json"
+trn_img_root: "coco/images/train2017/"
+val_img_root: "coco/images/val2017/"
+
+
+
+trn_img_base_size: 
+  - 640
+  - 640
+val_img_base_size: 
+  - 640
+  - 640
+
+multi_scale_p: 0.0
+multi_input_size: False
+double_multi_input_size: False
+both_sides: False
+
+min_visibility: 0.001
+dataset_lr_flip_p: 0.5
+dataset_dt_flip_p: 0.2
+dataset_photo_transform_p: 0.5
+
+dataset_filter_empy: True
+dataset_random_zoom_p: 0.4
+dataset_random_crop_p: 0.2
+dataset_mosaic_p: 0.0
+coco_dataset: True
+
+n_cls: 80
+n_prototypes: 16
+
+back_size: "T"
+back_freeze_first_layer: True
+back_freeze_bn: True
+
+neck_n_blocks: 2
+neck_expansion: 1.0
+neck_channels:
+  scale_3: [192, 192]
+  scale_4: [384, 192]
+  scale_5: [768, 192]
+neck_cnv_act: "gelu"
+neck_latteral_conv: True
+neck_latteral_conv_size: 192
+neck_latteral_conv_act: False
+neck_latteral_conv_nrm: True
+
+neck_prj_kernel_size: 1
+neck_prj_padding: 0
+neck_prj_stride: 1
+neck_prj_act: True
+neck_prj_nrm: True
+
+head_channels:
+  scale_3: [192, 192]
+  scale_4: [192, 192]
+  scale_5: [192, 192]
+head_n_layers: 6
+head_dim_feedfoward: 1024
+head_n_sample_points: 4
+head_n_query: 300
+head_n_attn_head: 8
+head_act: "gelu"
+head_mlp_act: "gelu"
+head_scale_dependent_query: False
+head_n_mlp_box_layers: 3
+head_n_mlp_msk_layers: 3
+head_n_qdn_query: 0
+head_cls_noise_ratio: 0.5
+head_box_noise_scale: 0.5
+head_location_eps: 0.01
+
+head_prj_kernel_size: 1
+head_prj_padding: 0
+head_prj_stride: 1
+head_prj_act: True
+head_prj_nrm: True
+
+mask_channels:
+  scale_2: [192, 96]
+  scale_3: [192, 96]
+  scale_5: [192, 96]
+  scale_4: [192, 96]
+mask_latteral_conv: True
+mask_latteral_conv_size: 96
+mask_latteral_conv_act: False
+mask_latteral_conv_nrm: True
+masks_n_blocks: 2
+mask_scaling: 4
+
+mask_prj_kernel_size: 1
+mask_prj_padding: 0
+mask_prj_stride: 1
+mask_prj_act: True
+mask_prj_nrm: True
+
+
+mask_prj_channels:
+  scale_2: [96,  96]
+  scale_3: [192, 96]
+  scale_4: [384, 96]
+  scale_5: [768, 96]
+
+matcher_weight_dict:
+  cls: 2.0
+  box: 5.0
+  giou: 2.0
+matcher_alpha: 0.2
+matcher_gamma: 2.0
+
+
+loss_weight_dict:
+  cls: 2.0
+  box: 5.0
+  giou: 5.0
+losses: ["cls", "box"]
+loss_alpha: 0.2
+loss_gamma: 2.0
+
+model_ema: True
+compiling: False
+optimizer: "Adam"
+lr: 0.0001
+lr_back_multi: 0.1
+lr_scheduler: one_cycle_lr
+cnf_threshold: 0.2
+pct_start: 0.001
+trn_batch_size: 62
+val_batch_size: 25
+total_trn_steps: 200_000
+gradient_norm: 0.1
+trn_log_steps: 100
+val_log_steps: 5000
+n_trn_workers: 32
+n_val_workers: 25
+
+val_n_predictions: 300
+
+wandb: True
+wandb-project: "00-base"
+wandb-group: "spike"
+wandb-gradient-steps: 100_000
+store_json: True

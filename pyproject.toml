@@ -1,0 +1,23 @@
+[project]
+name = "dietr"
+version = "0.1.0"
+description = "DIETR project"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "einops>=0.8.1",
+    "ipykernel>=6.29.5",
+    "matplotlib>=3.10.3",
+    "msgpack>=1.1.2",
+    "numpy>=1.26.4",
+    "opencv-python>=4.11.0.86",
+    "pycocotools>=2.0.10",
+    "pyyaml>=6.0.2",
+    "scipy>=1.16.0",
+    "scipy>=1.16.0",
+    "tensorboard>=2.16.2",
+    "torch>=2.7.1",
+    "torchvision>=0.22.1",
+    "tqdm>=4.67.1",
+    "wandb>=0.21.0",
+]
