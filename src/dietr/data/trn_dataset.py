@@ -30,7 +30,7 @@ class CocoDataset(torch.utils.data.Dataset):
         coco_ann_file: str,
         coco_img_root: str,
         img_base_size: tuple[int],
-        load_msk: bool,
+        msk: bool,
         mask_scaling: int = 4,
         min_visibility: float = 0.05,
         td_flip_p: float = 0.5,
@@ -45,7 +45,7 @@ class CocoDataset(torch.utils.data.Dataset):
         self.coco_gt: COCO = COCO(
             coco_ann_file,
         )
-        self.load_msk = load_msk
+        self.msk = msk
         if filter_empty:
             self.coco_gt.dataset = filter_coco_gt_remove_empty(self.coco_gt.dataset)
             self.coco_gt.createIndex()
@@ -99,7 +99,7 @@ class CocoDataset(torch.utils.data.Dataset):
             img_hw=img_hw,
             min_visibility=self.min_visibility,
             coco_dataset=self.coco_dataset,
-            load_msk=self.load_msk
+            msk=self.msk
         )
         img_np = random_photometric_distortion(img_np=img_np, p=self.photo_transform_p)
 

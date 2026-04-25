@@ -74,9 +74,9 @@ def load_ckpt(
     return dietr, dietr_ema, optim, scheduler, step
 
 
-def setup_dietr(config: dict[str, any], device: str) -> torch.nn.Module:
+def setup_dietr(config: dict[str, any], device: str, from_scratch) -> torch.nn.Module:
     dietr =  DIETR(
-        predict_msk=config["predict_msk"],
+        msk=config["msk"],
         n_cls=config["n_cls"],
         n_prototypes=config["n_prototypes"],
         back_size=config["back_size"],
@@ -127,9 +127,11 @@ def setup_dietr(config: dict[str, any], device: str) -> torch.nn.Module:
         mask_latteral_conv_act=config["mask_latteral_conv_act"],
         mask_latteral_conv_nrm=config["mask_latteral_conv_nrm"],
     ).to(device)
+    
     if config["compiling"]:
         dietr = torch.compile(dietr)
-    if config.get("pre-trained-model", False):
+    
+    if not from_scratch:
         ckpt = torch.load(config["pre-trained-model"], map_location=device)
         keys_to_remove = [k for k in ckpt["model"].keys() if 'enc_cls_head' in k or 'heads.cls' in k]
         for k in keys_to_remove:
@@ -145,10 +147,10 @@ def setup_modeling(
     device: str,
     wandb_run: None = None,
     ckpt: str = None,
+    from_scratch: bool = False
 ):
-    dietr = setup_dietr(config, device=device)
-    if config.get("compiling", False):
-        dietr = torch.compile(dietr)
+    dietr = setup_dietr(config, device=device, from_scratch=from_scratch)
+    
     matcher = HungarianMatcher(
         weight_dict=config["matcher_weight_dict"],
         alpha=config["matcher_alpha"],
@@ -172,10 +174,11 @@ def setup_modeling(
         {"params": dietr.head.parameters(), "lr": config["lr"]},
         {"params": dietr.neck.parameters(), "lr": config["lr"]},
     ]
-    if config["predict_msk"]:
+    if config["msk"]:
         params.append(
             {"params": dietr.mask.parameters(), "lr": config["lr"]},
         )
+
     if config["optimizer"] == "AdamW":
         optimizer = torch.optim.AdamW(
             params=params,
@@ -230,10 +233,10 @@ def setup_modeling(
         )
     else:
         step = 0
-    grad_scaler = torch.amp.grad_scaler.GradScaler(device="cuda")
     if wandb_run is not None:
         wandb_run.watch(dietr, log="all", log_freq=config["wandb-gradient-steps"])
 
+    grad_scaler = torch.amp.grad_scaler.GradScaler(device="cuda")
     return dietr, dietr_ema, loss, optimizer, scheduler, grad_scaler, step
 
 

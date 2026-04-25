@@ -25,7 +25,7 @@ from dietr.modeling.base.query_denoising import QueryDenoiser
 class DIETRHead(torch.nn.Module):
     def __init__(
         self,
-        predict_msk: bool,
+        msk: bool,
         channels: dict[str, tuple[int, int]],
         n_prototypes: int,
         n_cls: int,
@@ -50,7 +50,7 @@ class DIETRHead(torch.nn.Module):
         prj_nrm: str | bool,
     ):
         super().__init__()
-        self.predict_msk = predict_msk
+        self.msk = msk
         self.channels = channels
         hidden_dim = list(self.channels.values())[0][0]
         self.hidden_dim = hidden_dim
@@ -139,7 +139,7 @@ class DIETRHead(torch.nn.Module):
                 ),
             }
         )
-        if self.predict_msk:
+        if self.msk:
             self.heads["msk"] = torch.nn.ModuleList(
                     [
                         MLP(
@@ -288,7 +288,7 @@ class DIETRHead(torch.nn.Module):
         )
         box_enc_topk = self.enc_box_head(queries) + sampled_box_offsets
 
-        if self.predict_msk:
+        if self.msk:
             msk_enc_topk = self.enc_msk_head(queries)
 
         queries = queries.detach()
@@ -303,7 +303,7 @@ class DIETRHead(torch.nn.Module):
             "box_enc": torch.nn.functional.sigmoid(box_enc_topk),
             "cls_enc": cls_enc_topk,
         }
-        if self.predict_msk:
+        if self.msk:
             enc_output["msk_enc"] = msk_enc_topk
 
         return (queries, box_ref_unact.detach()), enc_output

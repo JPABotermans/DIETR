@@ -5,6 +5,7 @@ Copyright (c) 2026 Koen Botermans
 Licensed under the Apache License, Version 2.0 [see LICENSE for details]
 ------------------------------------------------------------------------
 """
+
 import torch
 import json
 import argparse
@@ -20,7 +21,7 @@ from dietr.tools.validation import validate
 from timeit import default_timer as timer
 
 
-def train(config_pth: str, device: str = "cuda:0", ckpt: str = None):
+def train(config_pth: str, device: str = "cuda:0", ckpt: str = None, from_scratch: bool = False):
     config, experiment_dir, logger, summary_writer, wandb_run = setup_trn_env(
         config_path=config_pth,
         ckpt=args.ckpt,
@@ -30,10 +31,11 @@ def train(config_pth: str, device: str = "cuda:0", ckpt: str = None):
         device=device,
         wandb_run=wandb_run,
         ckpt=ckpt,
+        from_scratch=from_scratch
     )
     logger.info(f"We have dietr.back: {count_parameters(model=dietr.back):,d}")
     logger.info(f"We have dietr.neck: {count_parameters(model=dietr.neck):,d}")
-    if config["predict_msk"]:
+    if config["msk"]:
         logger.info(f"We have dietr.mask: {count_parameters(model=dietr.mask):,d}")
     logger.info(f"We have dietr.head: {count_parameters(model=dietr.head):,d}")
     logger.info(f"We have dietr FULL: {count_parameters(model=dietr):,d}")
@@ -96,7 +98,7 @@ def train(config_pth: str, device: str = "cuda:0", ckpt: str = None):
         if step % config["val_log_steps"] == 0 and step != 0:
             logger.info("Evaluating")
             results, coco_prd_data = validate(
-                predict_msk=config["predict_msk"],
+                msk=config["msk"],
                 dietr=dietr_ema if dietr_ema is not None else dietr,
                 val_dataloader=val_dataloader,
                 device=device,
@@ -123,6 +125,14 @@ if __name__ == "__main__":
     parser.add_argument("config", help="train config file path")
     parser.add_argument("--device", default="cuda:0", help="The device to use")
     parser.add_argument("--ckpt", default=None, help="Continue from training.")
+    parser.add_argument(
+        "--from_scratch", action="store_true", help="Start training from scratch"
+    )
     args = parser.parse_args()
 
-    train(config_pth=args.config, device=args.device, ckpt=args.ckpt)
+    train(
+        config_pth=args.config,
+        device=args.device,
+        ckpt=args.ckpt,
+        from_scratch=args.from_scratch,
+    )

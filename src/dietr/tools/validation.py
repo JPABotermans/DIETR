@@ -221,9 +221,9 @@ def get_coco_anns(
     return coco_results
 
 
-def get_empty_coco_results(predict_msk: bool) -> tuple[dict[str, float], any]:
+def get_empty_coco_results(msk: bool) -> tuple[dict[str, float], any]:
     box_results = {f"bbox/{k}": 0.0 for k in coco_result_names}
-    if predict_msk:
+    if msk:
         return {f"segm/{k}": 0.0 for k in coco_result_names} | box_results, None
     return box_results, None
 
@@ -231,7 +231,7 @@ def get_empty_coco_results(predict_msk: bool) -> tuple[dict[str, float], any]:
 @torch.no_grad()
 def validate(
     dietr: torch.nn.Module,
-    predict_msk: bool,
+    msk: bool,
     val_dataloader: torch.utils.data.DataLoader,
     device: str | int,
     n_cls: int,
@@ -250,21 +250,22 @@ def validate(
         coco_dataset=coco_dataset,
     )
     coco_results_gathered = all_gather(coco_results)
+    
     coco_results = []
     for coco_results_gpu in coco_results_gathered:
         coco_results.extend(coco_results_gpu)
 
     if len(coco_results) == 0:
-        return get_empty_coco_results(predict_msk=predict_msk)
+        return get_empty_coco_results(msk=msk)
 
     if get_world_size() != 1:
         if device not in [0, "cuda:0", "cuda"]:
-            return get_empty_coco_results(predict_msk=predict_msk)
+            return get_empty_coco_results(msk=msk)
 
     coco_eval_results: dict[str, float] = {}
     coco_gt = COCO(annotation_file=val_dataloader.dataset.coco_ann_file)
 
-    modes = ["bbox", "segm"] if predict_msk else ["bbox"]
+    modes = ["bbox", "segm"] if msk else ["bbox"]
     coco_dt = coco_gt.loadRes(coco_results)
     for mode in modes:
         coco_eval = COCOeval(cocoDt=coco_dt, cocoGt=coco_gt, iouType=mode)

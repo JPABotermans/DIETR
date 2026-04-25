@@ -1,8 +1,8 @@
 base_dir: "/workspaces/dietr/__results__/"
 prefix: "00-base-box"
 
-predict_msk: False
-load_msk: False
+msk: False
+
 coco_data_dir: "/workspaces/data/"
 trn_ann_file: "coco/annotations/instances_train2017.json"
 val_ann_file: "coco/annotations/instances_val2017.json"

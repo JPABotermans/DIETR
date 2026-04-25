@@ -10,7 +10,7 @@ class DIETR(torch.nn.Module):
 
     def __init__(
         self,
-        predict_msk: bool,
+        msk: bool,
         n_cls: int,
         n_prototypes: int,
         
@@ -100,7 +100,7 @@ class DIETR(torch.nn.Module):
             mask_block_cfg (dict[str, any]): _description_
         """
         super().__init__()
-        self.predict_msk = predict_msk
+        self.msk = msk
 
         self.back = DIETRConvNext(
             size=back_size,
@@ -123,7 +123,7 @@ class DIETR(torch.nn.Module):
             prj_nrm=neck_prj_nrm,
         )
         self.head = DIETRHead(
-            predict_msk=predict_msk,
+            msk=msk,
             channels=head_channels,
             n_cls=n_cls,
             n_query=head_n_query,
@@ -147,7 +147,7 @@ class DIETR(torch.nn.Module):
             prj_act=head_prj_act,
             prj_nrm=head_prj_nrm,
         )
-        if predict_msk:
+        if msk:
             self.mask = DIETRMask(
                 n_prototypes=n_prototypes,
                 channels=mask_channels,
@@ -170,7 +170,7 @@ class DIETR(torch.nn.Module):
     ) -> dict[str, torch.Tensor]:
         back_features = self.back(x_trn_batch)
         neck_features = self.neck(back_features)
-        if self.predict_msk:
+        if self.msk:
             return self.head(neck_features, y_trn_batch=y_trn_batch) | self.mask(
                 back_features
             )

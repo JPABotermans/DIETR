@@ -43,6 +43,13 @@ def get_val_dataloader(
         sampler=DistributedSampler(coco_dataset, shuffle=False) if multi_gpu else None,
     )
 
+def contains_targets(y_trn_batch: dict[str, list[torch.Tensor]]) -> bool:
+    for box in y_trn_batch["box"]:
+        if len(box) == 0:
+            return False
+    return True
+
+
 def cycle(iterable: Any) -> Iterator[Any]:
     """Create a dataloader-safe cyclical iterator.
     From: https://github.com/pytorch/pytorch/issues/23900#issuecomment-518858050
@@ -50,13 +57,16 @@ def cycle(iterable: Any) -> Iterator[Any]:
     iterator = iter(iterable)
     while True:
         try:
-            yield next(iterator)
+            (x_trn_batch, y_trn_batch) =  next(iterator)
+            # while not contains_targets(y_trn_batch=y_trn_batch):
+            #     (x_trn_batch, y_trn_batch) =  next(iterator)
+            yield (x_trn_batch, y_trn_batch)
         except StopIteration:
             iterator = iter(iterable)
 
 def get_trn_dataloader(config, multi_gpu: bool, cycle_dataloader: bool) -> Iterator[Any]:
     coco_dataset = CocoDataset(
-        load_msk=config["load_msk"],
+        msk=config["msk"],
         coco_ann_file=config["trn_ann_file"],
         coco_img_root=config["trn_img_root"],
         img_base_size=config["trn_img_base_size"],

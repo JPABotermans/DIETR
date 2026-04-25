@@ -31,10 +31,10 @@ def coco_seg_to_msk_np(coco_seg: dict, img_hw: tuple[int, int]) -> np.ndarray:
     if not isinstance(coco_seg, dict):
         msk_np = msk_polygon_to_msk_np(polygon=coco_seg, img_hw=img_hw)
     else:
-        if "counts" in coco_seg:
-            msk_np = msk_rle_to_msk_np(msk_rle_to_compressed_rle(coco_ann=coco_seg))
-        else:
+        if isinstance(coco_seg["counts"], str):
             msk_np = msk_rle_to_msk_np(rle=coco_seg)
+        else:
+            msk_np = msk_rle_to_msk_np(msk_rle_to_compressed_rle(coco_ann=coco_seg))
     return msk_np.astype(np.bool_)
 
 
@@ -43,7 +43,7 @@ def coco_ann_to_sample_np(
     img_hw: tuple[int, int],
     min_visibility: float,
     coco_dataset: bool,
-    load_msk: bool,
+    msk: bool,
 ) -> dict[str, np.ndarray]:
     """Convert anntations from the coco annotation format to the internal data format, which is just a dictionary of numpy arrays..
 
@@ -62,7 +62,7 @@ def coco_ann_to_sample_np(
     """
     box_np = []
     cls_np = []
-    if load_msk:
+    if msk:
         msk_np = []
         crp_np = []
     for annotation in coco_ann:
@@ -79,14 +79,14 @@ def coco_ann_to_sample_np(
         else:
             cls_np.append(annotation["category_id"])
 
-        if load_msk:
+        if msk:
             msk_np.append(
                 coco_seg_to_msk_np(coco_seg=annotation["segmentation"], img_hw=img_hw)
             )
             crp_np.append(msk_np_to_msk_crp_np(msk_np=msk_np[-1]))
 
     if len(box_np) == 0:
-        if load_msk:
+        if msk:
             return {
                 "box_np": np.array([]).reshape(-1, 4),
                 "msk_np": np.array([]).reshape(-1, 4, 4),
@@ -97,7 +97,7 @@ def coco_ann_to_sample_np(
             "box_np": np.array([]).reshape(-1, 4),
             "cls_np": np.array([]),
         }
-    if load_msk:
+    if msk:
         return {
             "box_np": np.stack(box_np),
             "cls_np": np.stack(cls_np),
