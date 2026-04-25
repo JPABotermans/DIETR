@@ -44,10 +44,29 @@ Just clone it using git.
 ```bash
 git clone https://github.com/JPABotermans/dietr.git
 ```
+
 And install all dependencies using `uv`
 ```bash
 uv sync
 ```
+<details><summary> Install DIETR for cuda-toolkit versions</summary>
+
+The default instalation installs the `nvidia-cudnn-cu13` wheel. If your driver doens't support that CUDA toolkit version (check by `nvidia-smi`) you can install different version using the following commands:
+
+```bash
+uv sync --extra cu128
+```
+For 12.1
+```bash
+uv sync --extra cu121
+```
+And for cpu only 
+```bash
+uv sync --extra cpu
+```
+
+
+</details>
 
 # Training
 Training 
