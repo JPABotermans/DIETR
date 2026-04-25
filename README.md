@@ -49,8 +49,8 @@ And install all dependencies using `uv`
 ```bash
 uv sync
 ```
-<details><summary> Install DIETR for cuda-toolkit versions</summary>
 
+<details><summary> Install DIETR for cuda-toolkit versions</summary>
 The default instalation installs the `nvidia-cudnn-cu13` wheel. If your driver doens't support that CUDA toolkit version (check by `nvidia-smi`) you can install different version using the following commands:
 
 ```bash
@@ -64,25 +64,50 @@ And for cpu only
 ```bash
 uv sync --extra cpu
 ```
-
-
 </details>
 
-# Training
-Training 
+
+
+# Tuning
+To fine-tune a model you need a dataset in coco format with the following and change the configurations like this, for example `__config__/01-tune-msk.yaml` 
+
+```yaml
+n_cls: #Classes
+coco_dataset: False
+coco_data_dir: "Path to your coco dataset"
+trn_ann_file: "path to your annotations.json"
+val_ann_file: "path to your annotations.json"
+trn_img_root: "/train/"
+val_img_root: "/valid/"
+
+pre-trained-model: dietr-msk.pt
+```
+
 ```bash
 uv run python \
     src/dietr/trn.py \
-    __configs__/00-base-msk.yaml
+    __config__/02-tune-msk.yaml \
+    --device "cuda:1"
+```
+
+# Training
+Training a model from scratch on the coco dataset:
+```bash
+uv run python \
+    src/dietr/trn.py \
+    __config__/00-base-msk.yaml \
+
 ```
 
 # Validation
 ```bash
 uv run python \
     src/dietr/val.py \
-    __configs__/00-base-msk.yaml \
-    --ckpt 00-dietr-msk.pt
+    __config__/00-base-msk.yaml \
+    --ckpt 00-dietr-msk.pt \
 ```
+
+
 
 # Acknowledgement
 ## [VBTI](https://www.vbti.nl)
