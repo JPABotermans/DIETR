@@ -2,13 +2,13 @@ base_dir: "/workspaces/dietr/__results__/"
 prefix: "00-base-box"
 
 msk: False
+pre-trained-model: "dietr-box.pt"
 
-coco_data_dir: "/workspaces/data/"
-trn_ann_file: "coco/annotations/instances_train2017.json"
-val_ann_file: "coco/annotations/instances_val2017.json"
-trn_img_root: "coco/images/train2017/"
-val_img_root: "coco/images/val2017/"
-
+coco_data_dir: "/workspaces/data/coco/"
+trn_ann_file: "annotations/instances_train2017.json"
+val_ann_file: "annotations/instances_val2017.json"
+trn_img_root: "images/train2017/"
+val_img_root: "images/val2017/"
 
 
 trn_img_base_size: 

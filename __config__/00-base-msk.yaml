@@ -1,6 +1,7 @@
 base_dir: "/workspaces/dietr/__results__/"
 prefix: "00-base-msk-"
 
+pre-trained-model: "dietr-msk.pt"
 msk: True
 
 coco_data_dir: "/workspaces/data/"
