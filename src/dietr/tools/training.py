@@ -5,8 +5,6 @@ Copyright (c) 2026 Koen Botermans
 Licensed under the Apache License, Version 2.0 [see LICENSE for details]
 ------------------------------------------------------------------------
 """
-
-import os
 import torch
 import pathlib
 from dietr.modeling.ema import ModelEMA
@@ -14,19 +12,6 @@ from dietr.modeling.loss.loss import DIETRLoss
 from dietr.modeling.loss.matcher import HungarianMatcher
 from dietr.modeling.dietr.dietr import DIETR
 from torch.optim.lr_scheduler import LambdaLR
-
-
-import shutil
-import sys
-from pathlib import Path
-from urllib.request import urlopen, Request
-
-def download_file(url: str, dest: str | Path = "dietr-msk.pt") -> Path:
-    dest = Path(dest)
-    req = Request(url, headers={"User-Agent": "python-urllib"})  # GH redirects need a UA
-    with urlopen(req) as resp, open(dest, "wb") as f:
-        shutil.copyfileobj(resp, f)
-    return dest
 
 
 def count_parameters(model):
@@ -55,7 +40,7 @@ def save_ckpt(
 def load_ckpt(
     ckpt: str,
     dietr: torch.nn.Module,
-    dietr_ema: torch.nn.Module | None,
+    dietr_ema: torch.nn.Module,
     optim: torch.optim.Optimizer | None,
     device: str,
     scheduler: torch.optim.lr_scheduler.LRScheduler | None,
@@ -81,7 +66,7 @@ def load_ckpt(
         if "step" in ckpt:
             dietr_ema.updates = ckpt["step"]
     else:
-        dietr_ema = None
+        dietr_ema = dietr_ema
     if "scheduler" in ckpt and not new_training_start and scheduler:
         scheduler.load_state_dict(ckpt["scheduler"])
 
@@ -89,8 +74,8 @@ def load_ckpt(
     return dietr, dietr_ema, optim, scheduler, step
 
 
-def setup_dietr(config: dict[str, any], device: str, from_scratch) -> DIETR:
-    dietr = DIETR(
+def setup_dietr(config: dict[str, any], device: str, from_scratch) -> torch.nn.Module:
+    dietr =  DIETR(
         msk=config["msk"],
         n_cls=config["n_cls"],
         n_prototypes=config["n_prototypes"],
@@ -142,38 +127,30 @@ def setup_dietr(config: dict[str, any], device: str, from_scratch) -> DIETR:
         mask_latteral_conv_act=config["mask_latteral_conv_act"],
         mask_latteral_conv_nrm=config["mask_latteral_conv_nrm"],
     ).to(device)
-
+    
     if config["compiling"]:
         dietr = torch.compile(dietr)
-
-    if from_scratch:
-        return dietr
     
-
-    if not os.path.exists(config["pre-trained-model"]):
-        if config["msk"]:
-            res = download_file(url = "https://github.com/JPABotermans/DIETR/releases/download/v0.0.1-alpha/dietr-msk.pt", dest = "dietr-msk.pt")
-        else:
-            res = download_file(url = "https://github.com/JPABotermans/DIETR/releases/download/v0.0.1-alpha/dietr-box.pt", dest = "dietr-box.pt")
-
-        ckpt = torch.load(res, map_location=device)
-    else:
+    if not from_scratch:
         ckpt = torch.load(config["pre-trained-model"], map_location=device)
-    
-    dietr.load_state_dict(ckpt["model"], strict=False)
+        keys_to_remove = [k for k in ckpt["model"].keys() if 'enc_cls_head' in k or 'heads.cls' in k]
+        for k in keys_to_remove:
+            del ckpt["model"][k]
+
+        dietr.load_state_dict(ckpt["model"], strict=False)
+
     return dietr
 
 
-
 def setup_modeling(
-    dietr: DIETR,
     config: dict,
     device: str,
     wandb_run: None = None,
     ckpt: str = None,
+    from_scratch: bool = False
 ):
+    dietr = setup_dietr(config, device=device, from_scratch=from_scratch)
     
-
     matcher = HungarianMatcher(
         weight_dict=config["matcher_weight_dict"],
         alpha=config["matcher_alpha"],
@@ -260,7 +237,7 @@ def setup_modeling(
         wandb_run.watch(dietr, log="all", log_freq=config["wandb-gradient-steps"])
 
     grad_scaler = torch.amp.grad_scaler.GradScaler(device="cuda")
-    return dietr_ema, loss, optimizer, scheduler, grad_scaler, step
+    return dietr, dietr_ema, loss, optimizer, scheduler, grad_scaler, step
 
 
 def setup_val_modeling(
@@ -269,7 +246,7 @@ def setup_val_modeling(
     wandb_run: None = None,
     ckpt: str = None,
 ):
-    dietr = setup_dietr(config, device=device, from_scratch=True)
+    dietr = setup_dietr(config, device=device)
     if config.get("compiling", False):
         dietr = torch.compile(dietr)
 
@@ -283,8 +260,9 @@ def setup_val_modeling(
     else:
         dietr_ema = None
 
+
     if ckpt is not None and pathlib.Path(ckpt).exists():
-        dietr, dietr_ema, _, _, step = load_ckpt(
+        dietr, dietr_ema, optimizer, scheduler, step = load_ckpt(
             ckpt=ckpt,
             dietr=dietr,
             dietr_ema=dietr_ema,
@@ -299,4 +277,4 @@ def setup_val_modeling(
     if wandb_run is not None:
         wandb_run.watch(dietr, log="all", log_freq=config["wandb-gradient-steps"])
 
-    return dietr, dietr_ema, step
+    return dietr, dietr_ema,  step

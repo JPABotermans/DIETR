@@ -10,7 +10,7 @@ import torch
 import json
 import argparse
 from dietr.data.dataloaders import get_trn_dataloader, get_val_dataloader
-from dietr.tools.training import setup_modeling, save_ckpt, count_parameters, setup_dietr
+from dietr.tools.training import setup_modeling, save_ckpt, count_parameters
 from dietr.tools.logging import (
     setup_trn_env,
     log_loss_dict_tt,
@@ -24,16 +24,14 @@ from timeit import default_timer as timer
 def train(config_pth: str, device: str = "cuda:0", ckpt: str = None, from_scratch: bool = False):
     config, experiment_dir, logger, summary_writer, wandb_run = setup_trn_env(
         config_path=config_pth,
-        ckpt=ckpt,
+        ckpt=args.ckpt,
     )
-    dietr = setup_dietr(config, device=device, from_scratch=from_scratch)
-    
-    dietr_ema, loss, optimizer, scheduler, grad_scaler, step = setup_modeling(
-        dietr=dietr,
+    dietr, dietr_ema, loss, optimizer, scheduler, grad_scaler, step = setup_modeling(
         config=config,
         device=device,
         wandb_run=wandb_run,
         ckpt=ckpt,
+        from_scratch=from_scratch
     )
     logger.info(f"We have dietr.back: {count_parameters(model=dietr.back):,d}")
     logger.info(f"We have dietr.neck: {count_parameters(model=dietr.neck):,d}")
