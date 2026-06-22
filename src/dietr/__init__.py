@@ -1,1 +1,1 @@
-from dietr_wrapper import DIETR
+from .wrapper import DIETR
