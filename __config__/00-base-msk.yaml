@@ -8,6 +8,7 @@ trn_ann_file: "coco/annotations/instances_train2017.json"
 val_ann_file: "coco/annotations/instances_val2017.json"
 trn_img_root: "coco/images/train2017/"
 val_img_root: "coco/images/val2017/"
+pre-trained-model: "dietr-msk.pt"
 
 
 
