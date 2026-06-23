@@ -30,16 +30,17 @@ def val(config_pth: str, device: str = "cuda:0", ckpt: str = None):
     )
     val_dataloader = get_val_dataloader(config=config, multi_gpu=False)
 
-    _, coco_prd_data = validate(
-        predict_msk=config["predict_msk"],
+    coco, coco_prd_data = validate(
         dietr=dietr_ema if dietr_ema is not None else dietr,
+        msk=config["msk"],
         val_dataloader=val_dataloader,
         device=device,
-        cnf_threshold=0.1,
+        cnf_threshold=0.2,
         n_cls=config["n_cls"],
         n_predictions=config["val_n_predictions"],
         coco_dataset=config["coco_dataset"],
     )
+    print(coco)
     if config["store_json"]:
         with open(f"{experiment_dir}/step-{step}.json", "w") as file:
             json.dump(coco_prd_data, file)

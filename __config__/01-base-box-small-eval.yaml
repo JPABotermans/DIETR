@@ -1,9 +1,9 @@
 base_dir: "/workspaces/dietr/__results__/"
-prefix: "00-base-box"
+prefix: "00-base-msk-"
 
 msk: False
 
-coco_data_dir: "/workspaces/data/"
+coco_data_dir: "~/data/"
 trn_ann_file: "coco/annotations/instances_train2017.json"
 val_ann_file: "coco/annotations/instances_val2017.json"
 trn_img_root: "coco/images/train2017/"
@@ -122,7 +122,8 @@ loss_weight_dict:
   cls: 2.0
   box: 5.0
   giou: 5.0
-losses: ["cls", "box"]
+  msk: 1.0
+losses: ["cls", "box", "msk"]
 loss_alpha: 0.2
 loss_gamma: 2.0
 
@@ -134,19 +135,19 @@ lr_back_multi: 0.1
 lr_scheduler: one_cycle_lr
 cnf_threshold: 0.2
 pct_start: 0.001
-trn_batch_size: 62
-val_batch_size: 25
+trn_batch_size: 4
+val_batch_size: 4
 total_trn_steps: 200_000
 gradient_norm: 0.1
 trn_log_steps: 100
 val_log_steps: 5000
-n_trn_workers: 32
-n_val_workers: 25
+n_trn_workers: 4
+n_val_workers: 4
 
 val_n_predictions: 300
 
 wandb: True
 wandb-project: "00-base"
-wandb-group: "spike"
+wandb-group: ""
 wandb-gradient-steps: 100_000
 store_json: True

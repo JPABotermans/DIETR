@@ -17,7 +17,7 @@
 from dietr import DIETR
 
 conf_pth = "__config__/00-base-msk.yaml"
-file_pth = "coco/images/val2017/000000534827.jpg"
+file_pth = "~/data/coco/images/val2017/000000479596.jpg"
 model = DIETR( 
     conf_pth=conf_pth, 
     )
@@ -101,7 +101,7 @@ uv run python \
 ```bash
 uv run python \
     src/dietr/val.py \
-    __config__/05-base-msk-small-batch.yaml \
+    __config__/01-base-msk-small-eval.yaml \
     --ckpt dietr-msk.pt
 ```
 
@@ -155,7 +155,7 @@ DONE (t=2.43s).
 ```bash
 uv run python \
     src/dietr/val.py \
-    __config__/05-base-box-small-batch.yaml \
+    __config__/01-base-box-small-eval.yaml \
     --ckpt dietr-box.pt
 ```
 

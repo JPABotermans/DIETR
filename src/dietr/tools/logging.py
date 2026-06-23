@@ -95,11 +95,11 @@ def setup_trn_env(config_path: str, ckpt: str = None, rank: int = 0) -> tuple[di
     with open(config_path, "r") as file:
         config = yaml.safe_load(file)
     
-    config["trn_ann_file"] = config["coco_data_dir"] + config["trn_ann_file"]
-    config["trn_img_root"] = config["coco_data_dir"] + config["trn_img_root"]
-    config["val_ann_file"] = config["coco_data_dir"] + config["val_ann_file"]
-    config["val_img_root"] = config["coco_data_dir"] + config["val_img_root"]
-    config["base_dir"] = config["base_dir"]
+    config["trn_ann_file"] = Path(config["coco_data_dir"]).expanduser() /  config["trn_ann_file"]
+    config["trn_img_root"] = Path(config["coco_data_dir"]).expanduser() /  config["trn_img_root"]
+    config["val_ann_file"] = Path(config["coco_data_dir"]).expanduser() /  config["val_ann_file"]
+    config["val_img_root"] = Path(config["coco_data_dir"]).expanduser() /  config["val_img_root"]
+    config["base_dir"] = str(Path(config["base_dir"]).expanduser())
 
     if ckpt is None:
         experiment_dir = create_new_experiment_dir(
@@ -137,11 +137,11 @@ def setup_val_env(config_path: str, ckpt: str = None, rank: int = 0) -> tuple[di
     with open(config_path, "r") as file:
         config = yaml.safe_load(file)
     
-    config["trn_ann_file"] = config["coco_data_dir"] + config["trn_ann_file"]
-    config["trn_img_root"] = config["coco_data_dir"] + config["trn_img_root"]
-    config["val_ann_file"] = config["coco_data_dir"] + config["val_ann_file"]
-    config["val_img_root"] = config["coco_data_dir"] + config["val_img_root"]
-    config["base_dir"] = config["base_dir"]
+    config["trn_ann_file"] = Path(config["coco_data_dir"]).expanduser() /  config["trn_ann_file"]
+    config["trn_img_root"] = Path(config["coco_data_dir"]).expanduser() /  config["trn_img_root"]
+    config["val_ann_file"] = Path(config["coco_data_dir"]).expanduser() /  config["val_ann_file"]
+    config["val_img_root"] = Path(config["coco_data_dir"]).expanduser() /  config["val_img_root"]
+    config["base_dir"] = str(Path(config["base_dir"]).expanduser())
 
     experiment_dir = str(Path(ckpt).parent)
 
