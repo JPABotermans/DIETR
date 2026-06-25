@@ -24,3 +24,9 @@ def test_readme_box():
         conf_pth=conf_pth, 
         )
     _ = model.predict_on_file(file_pth, plot=False)
+
+
+
+def test_finetune():
+    from dietr.trn import train
+    train(config_pth = "tests/test_data/test_config_tune.yaml")

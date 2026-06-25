@@ -157,13 +157,20 @@ def setup_dietr(config: dict[str, any], device: str, from_scratch) -> DIETR:
             res = download_file(url = "https://github.com/JPABotermans/DIETR/releases/download/v0.0.1-alpha/dietr-box.pt", dest = "dietr-box.pt")
         
         if config["n_cls"] != 80:
-            keys_to_remove = [k for k in ckpt["model"].keys() if 'enc_cls_head' in k or 'heads.cls' in k]
+            keys_to_remove = [k for k in ckpt["model"].keys() if 'enc_cls_head' in k or 'heads.cls' in k or "heads.cls" in k]
             for k in keys_to_remove:
                 del ckpt["model"][k]
-
+        
         ckpt = torch.load(res, map_location=device)
     else:
+
+
         ckpt = torch.load(config["pre-trained-model"], map_location=device)
+
+        if config["n_cls"] != 80:
+            keys_to_remove = [k for k in ckpt["model"].keys() if 'enc_cls_head' in k or 'heads.cls' in k or "heads.cls" in k]
+            for k in keys_to_remove:
+                del ckpt["model"][k]
     
     dietr.load_state_dict(ckpt["model"], strict=False)
     return dietr

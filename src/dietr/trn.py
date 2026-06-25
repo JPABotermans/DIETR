@@ -47,7 +47,7 @@ def train(config_pth: str, device: str = "cuda:0", ckpt: str = None, from_scratc
     )
     val_dataloader = get_val_dataloader(config=config, multi_gpu=False)
 
-    while step <= config["total_trn_steps"]:
+    while step <= (config["total_trn_steps"] -1):
         start_time = timer()
         step += 1
         (x_trn_batch, y_trn_batch) = next(trn_dataloader)
