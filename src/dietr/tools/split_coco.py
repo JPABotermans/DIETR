@@ -19,7 +19,7 @@ def split_coco_dataset(
         split_size (int): Split size e.g. 16
     """
 
-    with open(f"{base_file_pth}.json", "r") as file:
+    with open(f"{base_file_pth}", "r") as file:
         data = json.load(file)
 
     coco_img_ids = []
@@ -42,3 +42,24 @@ def split_coco_dataset(
 
     with open(f"{base_file_pth}_{split_size}.json", "w") as file:
         json.dump(new_anns, fp=file)
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Split COCO dataset into smaller size")
+    parser.add_argument(
+        "--base_file_pth",
+        type=str,
+        default="coco/annotations/instances_train2017",
+        help="Base file path for COCO annotations (without .json extension)",
+    )
+    parser.add_argument(
+        "--split_size",
+        type=int,
+        default=16,
+        help="Number of images to include in the split dataset",
+    )
+    args = parser.parse_args()
+
+    split_coco_dataset(args.base_file_pth, args.split_size)
