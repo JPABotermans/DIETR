@@ -21,7 +21,7 @@ file_pth = "~/data/coco/images/val2017/000000479596.jpg"
 model = DIETR( 
     conf_pth=conf_pth, 
     )
-result = model.predict_on_file(file_pth, plot=True)
+result_coco : list[dict] = model.predict_on_file(file_pth, plot=True)
 ````
 ![media/readme/prediction.png](media/readme/prediction-msk.png)
 # DIETR-box
@@ -33,7 +33,7 @@ file_pth = "coco/images/val2017/000000534827.jpg"
 model = DIETR( 
     conf_pth=conf_pth, 
     )
-result = model.predict_on_file(file_pth, plot=True)
+result_coco : list[dict] = model.predict_on_file(file_pth, plot=True)
 ````
 ![media/readme/prediction.png](media/readme/prediction-box.png)
 
