@@ -4,8 +4,7 @@ def test_readme_msk():
     from dietr import DIETR
     from pathlib import Path
     conf_pth = "__config__/00-base-msk.yaml"
-    file_pth = "~/data/coco/images/val2017/000000479596.jpg"
-    file_pth = Path("~/data/coco/images/val2017/000000479596.jpg").expanduser()
+    file_pth = Path("tests/test_data/coco_mini/images/000000005802.jpg").expanduser()
 
     model = DIETR( 
         conf_pth=conf_pth, 
@@ -17,8 +16,7 @@ def test_readme_box():
     from dietr import DIETR
     from pathlib import Path
     conf_pth = "__config__/00-base-box.yaml"
-    file_pth = "~/data/coco/images/val2017/000000479596.jpg"
-    file_pth = Path("~/data/coco/images/val2017/000000479596.jpg").expanduser()
+    file_pth = Path("tests/test_data/coco_mini/images/000000005802.jpg").expanduser()
 
     model = DIETR( 
         conf_pth=conf_pth, 
