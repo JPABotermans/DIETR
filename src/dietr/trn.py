@@ -17,11 +17,17 @@ from dietr.tools.logging import (
     log_config_with_metrics,
 )
 from dietr.tools.validation import validate
+import torch.distributed as dist
+from torch.nn.parallel import DistributedDataParallel as DDP
+from dietr.tools.distributed import ddp_setup, broadcast_model_weights
 
 from timeit import default_timer as timer
 
 
-def train(config_pth: str, device: str = "cuda:0", ckpt: str = None, from_scratch: bool = False):
+def train(config_pth: str, device: str = "cuda:0", ckpt: str | None = None, from_scratch: bool = False):
+    world_size, rank, distributed = ddp_setup()
+    device = f"cuda:{rank}" if torch.cuda.is_available() else "cpu"
+
     config, experiment_dir, logger, summary_writer, wandb_run = setup_trn_env(
         config_path=config_pth,
         ckpt=ckpt,
@@ -42,19 +48,24 @@ def train(config_pth: str, device: str = "cuda:0", ckpt: str = None, from_scratc
     logger.info(f"We have dietr.head: {count_parameters(model=dietr.head):,d}")
     logger.info(f"We have dietr FULL: {count_parameters(model=dietr):,d}")
 
+    if distributed:
+        broadcast_model_weights(model=dietr, rank=rank)
+        dietr = DDP(dietr, device_ids=[rank], find_unused_parameters=True)
+        
+    raw_model = dietr.module if distributed else dietr
     trn_dataloader = get_trn_dataloader(
-        config=config, multi_gpu=False, cycle_dataloader=True
+        config=config, multi_gpu=distributed, cycle_dataloader=True
     )
-    val_dataloader = get_val_dataloader(config=config, multi_gpu=False)
+    val_dataloader = get_val_dataloader(config=config, multi_gpu=distributed)
 
     while step <= (config["total_trn_steps"] -1):
         start_time = timer()
         step += 1
         (x_trn_batch, y_trn_batch) = next(trn_dataloader)
         with torch.amp.autocast(
-            device_type=device,
+            device_type="cuda",
             cache_enabled=True,
-            dtype=torch.float16,
+            dtype=torch.bfloat16,
         ):
             y_trn_batch = {k: [t.to(device) for t in v] for k, v in y_trn_batch.items()}
             y_prd_batch = dietr(
@@ -73,11 +84,11 @@ def train(config_pth: str, device: str = "cuda:0", ckpt: str = None, from_scratc
         scheduler.step()
 
         if dietr_ema is not None:
-            dietr_ema.update(dietr)
+            dietr_ema.update(raw_model)
 
         end_time = timer()
 
-        if step % config["trn_log_steps"] == 0 and step != 0:
+        if step % config["trn_log_steps"] == 0 and step != 0 and rank == 0:
             losses_dict["step_time"] = end_time - start_time
             losses_dict["grad_norm"] = grad_norm.item()
             losses_dict["learning_rate"] = scheduler.get_last_lr()[-1]
@@ -101,7 +112,7 @@ def train(config_pth: str, device: str = "cuda:0", ckpt: str = None, from_scratc
             logger.info("Evaluating")
             results, coco_prd_data = validate(
                 msk=config["msk"],
-                dietr=dietr_ema if dietr_ema is not None else dietr,
+                dietr=dietr_ema if dietr_ema is not None else raw_model,
                 val_dataloader=val_dataloader,
                 device=device,
                 cnf_threshold=config["cnf_threshold"],
