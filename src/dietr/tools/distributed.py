@@ -37,11 +37,11 @@ def all_gather(data):
     torch.distributed.all_gather_object(data_list, data)
     return data_list
 
-def ddp_setup() -> tuple[int, int]:
+def ddp_setup() -> tuple[int, int, bool]:
     if "RANK" in os.environ and "WORLD_SIZE" in os.environ:
         print("Running under torchrun (distributed mode)")
     else:
-        return 0, 0, False
+        return 1, 0, False
 
     if "WORLD_SIZE" in os.environ:
         world_size = int(os.environ["WORLD_SIZE"])
@@ -52,7 +52,7 @@ def ddp_setup() -> tuple[int, int]:
     elif "RANK" in os.environ:
         rank = int(os.environ["RANK"])
     else:
-        rank = 0    
+        rank = 0
     
     if "MASTER_ADDR" not in os.environ:
         os.environ["MASTER_ADDR"] = "localhost"
@@ -62,20 +62,10 @@ def ddp_setup() -> tuple[int, int]:
     torch.distributed.init_process_group(backend="nccl", rank=rank, world_size=world_size)
     torch.cuda.set_device(rank)
     
-
-
     if rank == 0:
         print("PyTorch version:", torch.__version__)
         print("CUDA available:", torch.cuda.is_available())
         print("Number of GPUs available:", torch.cuda.device_count())
-    
-    if "MASTER_ADDR" not in os.environ:
-        os.environ["MASTER_ADDR"] = "localhost"
-    if "MASTER_PORT" not in os.environ:
-        os.environ["MASTER_PORT"] = "12345"
-
-    torch.distributed.init_process_group(backend="nccl", rank=rank, world_size=world_size)
-    torch.cuda.set_device(rank)
     
     return world_size, rank, True
 
