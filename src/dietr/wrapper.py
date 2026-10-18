@@ -18,7 +18,7 @@ from dietr.tools.validation import validate, decode_y_prd_batch
 
 
 class DIETR:
-    def __init__(self, conf_pth: str, ckpt_pth: str = None, device: str = "cuda:0") -> None:
+    def __init__(self, conf_pth: str, device: str = "cuda:0") -> None:
         with open(conf_pth, "r") as file:
             self.config = yaml.safe_load(file)
         self.device = device
@@ -84,6 +84,7 @@ class DIETR:
         val_dataloader = get_val_dataloader(config=self.config)
         return validate(
             dietr=self.dietr,
+            msk=self.config["msk"],
             val_dataloader=val_dataloader,
             device=self.device,
             cnf_threshold=cnf_threshold,

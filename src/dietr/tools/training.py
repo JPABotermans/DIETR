@@ -148,31 +148,19 @@ def setup_dietr(config: dict[str, any], device: str, from_scratch) -> DIETR:
 
     if from_scratch:
         return dietr
-    
 
     if not os.path.exists(config["pre-trained-model"]):
-        if config["msk"]:
-            res = download_file(url = "https://github.com/JPABotermans/DIETR/releases/download/v0.0.1-alpha/dietr-msk.pt", dest = "dietr-msk.pt")
-        else:
-            res = download_file(url = "https://github.com/JPABotermans/DIETR/releases/download/v0.0.1-alpha/dietr-box.pt", dest = "dietr-box.pt")
-        
-        if config["n_cls"] != 80:
-            keys_to_remove = [k for k in ckpt["model"].keys() if 'enc_cls_head' in k or 'heads.cls' in k or "heads.cls" in k]
-            for k in keys_to_remove:
-                del ckpt["model"][k]
-        
+        res = download_file(url = f"https://huggingface.co/Koen1995/DIETR-msk-2026-10-17/resolve/main/{config['pre-trained-model']}", dest = config['pre-trained-model'])
         ckpt = torch.load(res, map_location=device)
     else:
-
-
         ckpt = torch.load(config["pre-trained-model"], map_location=device)
 
-        if config["n_cls"] != 80:
-            keys_to_remove = [k for k in ckpt["model"].keys() if 'enc_cls_head' in k or 'heads.cls' in k or "heads.cls" in k]
-            for k in keys_to_remove:
-                del ckpt["model"][k]
+    if config["n_cls"] != 80:
+        keys_to_remove = [k for k in ckpt.keys() if 'enc_cls_head' in k or 'heads.cls' in k or "heads.cls" in k]
+        for k in keys_to_remove:
+            del ckpt[k]
     
-    dietr.load_state_dict(ckpt["model"], strict=False)
+    dietr.load_state_dict(ckpt, strict=False)
     return dietr
 
 
@@ -184,8 +172,6 @@ def setup_modeling(
     wandb_run: None = None,
     ckpt: str = None,
 ):
-    
-
     matcher = HungarianMatcher(
         weight_dict=config["matcher_weight_dict"],
         alpha=config["matcher_alpha"],
@@ -280,36 +266,13 @@ def setup_val_modeling(
     config: dict,
     device: str,
     wandb_run: None = None,
-    ckpt: str = None,
 ):
-    dietr = setup_dietr(config, device=device, from_scratch=True)
+    dietr = setup_dietr(config, device=device, from_scratch=False)
     if config.get("compiling", False):
         dietr = torch.compile(dietr)
 
-    if config["model_ema"]:
-        dietr_ema = ModelEMA(
-            model=dietr,
-            decay=config.get("model_ema_decay", 0.999),
-            warmups=config.get("model_ema_warmups", 1000),
-            start=config.get("model_ema_start", 0),
-        )
-    else:
-        dietr_ema = None
-
-    if ckpt is not None and pathlib.Path(ckpt).exists():
-        dietr, dietr_ema, _, _, step = load_ckpt(
-            ckpt=ckpt,
-            dietr=dietr,
-            dietr_ema=dietr_ema,
-            optim=None,
-            device=device,
-            scheduler=None,
-            new_training_start=config.get("new_training_start", False),
-        )
-    else:
-        step = 0
 
     if wandb_run is not None:
         wandb_run.watch(dietr, log="all", log_freq=config["wandb-gradient-steps"])
 
-    return dietr, dietr_ema, step
+    return dietr
