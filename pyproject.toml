@@ -1,23 +1,20 @@
 [project]
 name = "dietr"
-version = "0.1.0"
+dynamic = ["version"]
 description = "DIETR project"
 readme = "README.md"
 requires-python = ">=3.12"
+license = { file = "LICENSE" }
 dependencies = [
     "einops>=0.8.1",
-    "ipykernel>=6.29.5",
-    "matplotlib>=3.10.3",
     "msgpack>=1.1.2",
     "numpy>=1.26.4",
+    "matplotlib>=3.10.3",
     "opencv-python>=4.11.0.86",
     "pycocotools>=2.0.10",
     "pyyaml>=6.0.2",
     "scipy>=1.16.0",
-    "scipy>=1.16.0",
-    "tensorboard>=2.16.2",
     "tqdm>=4.67.1",
-    "wandb>=0.21.0",
     "torch>=2.5.1",
     "torchvision>=0.20.0",
 ]
@@ -37,7 +34,7 @@ cpu = [
 ]
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 
@@ -78,3 +75,18 @@ explicit = true
 name = "pytorch-cpu"
 url = "https://download.pytorch.org/whl/cpu"
 explicit = true
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.version.raw-options]
+local_scheme = "no-local-version"
+
+[dependency-groups]
+dev = [
+    "ipykernel>=6.29.5",
+    "jupyter>=1.1.1",
+    "pytest>=9.1.1",
+    "tensorboard>=2.16.2",
+    "wandb>=0.21.0",
+]
