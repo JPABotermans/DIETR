@@ -183,7 +183,7 @@ class DIETRLoss(torch.nn.Module):
         if is_dist_available_and_initialized():
             torch.distributed.all_reduce(n_box)
 
-        n_box = torch.clamp(n_box / get_world_size(), min=1).item()
+            n_box = torch.clamp(n_box / get_world_size(), min=1).item()
 
         loss_groups = [f"_{i}" for i in range(self.n_head_layers)]
         loss_groups += ["_enc"]

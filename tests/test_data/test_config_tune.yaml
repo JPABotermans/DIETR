@@ -3,7 +3,7 @@ prefix: "00-base-box-"
 
 msk: False
 
-coco_data_dir: "/home/koenbotermans/DIETR/tests/test_data/synthetic-flying-things/"
+coco_data_dir: "tests/test_data/synthetic-flying-things/"
 trn_ann_file: "annotations.json_4.json"
 val_ann_file: "annotations.json_4.json"
 trn_img_root: ""
